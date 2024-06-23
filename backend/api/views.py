@@ -5,12 +5,27 @@ from rest_framework.response import Response
 from django.http import Http404
 from rest_framework import status
 from django.utils.text import slugify
+from random import randint
 
 
 class CreateBlog(APIView):
     def post(sel, request):
-        slug = slugify(request.data.get('title'))
-        request.data.update({'slug': slug})
+        new_slug = slugify(request.data.get('title'))
+
+        # duplicate slug validation
+        slug = Blog.objects.filter(slug=new_slug)
+        if slug.exists():
+            def unique_slug(random_num):
+                slug_str = f"{new_slug}-{random_num}"
+                slug_exists = Blog.objects.filter(slug=slug_str)
+                if slug_exists.exists():
+                    return unique_slug(randint(1, 1000))
+                else:
+                    return slug_str
+
+            new_slug = unique_slug(randint(1, 1000))
+
+        request.data['slug'] = new_slug
 
         serializer = BlogSerializer(data=request.data)
         if serializer.is_valid():
@@ -42,6 +57,21 @@ class BlogDetail(APIView):
 
     def put(self, request, pk):
         blog = self.get_object(pk)
+        slug_str = slugify(request.data.get('title'))
+        slug = Blog.objects.filter(slug=slug_str)
+
+        if not slug.exists():
+            def unique_slug(random_num):
+                slug_str = f"{slugify(request.data.get('title'))}-{random_num}"
+                slug_exists = Blog.objects.filter(slug=slug_str)
+                if slug_exists.exists():
+                    return unique_slug(randint(1, 1000))
+                else:
+                    return slug_str
+
+            new_slug = unique_slug(randint(1, 1000))
+            request.data['slug'] = new_slug
+
         serializer = BlogSerializer(blog, data=request.data)
         if serializer.is_valid():
             serializer.save()
