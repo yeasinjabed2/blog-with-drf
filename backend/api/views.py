@@ -16,12 +16,12 @@ class CreateBlog(APIView):
         slug = Blog.objects.filter(slug=new_slug)
         if slug.exists():
             def unique_slug(random_num):
-                slug_str = f"{new_slug}-{random_num}"
-                slug_exists = Blog.objects.filter(slug=slug_str)
-                if slug_exists.exists():
+                slug = f"{new_slug}-{random_num}"
+                slug_exists = Blog.objects.filter(slug=slug).exists()
+                if slug_exists:
                     return unique_slug(randint(1, 1000))
                 else:
-                    return slug_str
+                    return slug
 
             new_slug = unique_slug(randint(1, 1000))
 
@@ -36,7 +36,6 @@ class CreateBlog(APIView):
 
 
 class BlogList(APIView):
-
     def get(self, request):
         blog = Blog.objects.all()
         serializer = BlogSerializer(blog, many=True)
@@ -62,12 +61,12 @@ class BlogDetail(APIView):
 
         if not slug.exists():
             def unique_slug(random_num):
-                slug_str = f"{slugify(request.data.get('title'))}-{random_num}"
-                slug_exists = Blog.objects.filter(slug=slug_str)
-                if slug_exists.exists():
+                slug = f"{slugify(request.data.get('title'))}-{random_num}"
+                slug_exists = Blog.objects.filter(slug=slug).exists()
+                if slug_exists:
                     return unique_slug(randint(1, 1000))
                 else:
-                    return slug_str
+                    return slug
 
             new_slug = unique_slug(randint(1, 1000))
             request.data['slug'] = new_slug
