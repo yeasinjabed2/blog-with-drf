@@ -6,6 +6,8 @@ from django.http import Http404
 from rest_framework import status
 from django.utils.text import slugify
 from random import randint
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class CreateBlog(APIView):
@@ -36,6 +38,9 @@ class CreateBlog(APIView):
 
 
 class BlogList(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         blog = Blog.objects.all()
         serializer = BlogSerializer(blog, many=True)
